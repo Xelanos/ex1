@@ -121,8 +121,8 @@ int startingDataFromUserInput(long double *x, long double *y, long double *veloc
 
 char *readLine(char *buffer, int bufferSize,FILE* inputFile)
 {
-    char *cp;
-    if (cp = fgets(buffer,bufferSize,inputFile))
+    char *cp = fgets(buffer,bufferSize,inputFile);
+    if (cp != NULL)
     {
         while (*cp == ' ' || *cp == '\t')
         {
