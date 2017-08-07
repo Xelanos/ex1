@@ -43,38 +43,52 @@ long double linearAdding(long double startingValue, long double slope, long doub
     return startingValue + slope * segmentLength;
 }
 
-int main(int argc, char *argv[])
+int parseLongFlaot(long double *outputVariable, char stringToParse[])
 {
-    long numbersOfSteps = 550, stepsToSave = 110, whenToPrint;
-    long double x = 6644.52, y = 5889, velocityX = 0.0, velocityY = 0,
-            accelerationX = 0.0, accelerationY = 0.0, totalTime = 16.544468478;
-    long double dt;
-    char *destinationFileName;
-    FILE *destinationFile;
+    *outputVariable = strtold(stringToParse,NULL);
+    if (stringToParse[0] != '0' && *outputVariable == 0);
 
-    if (argc == 2)
-    {
-        destinationFileName = argv[1];
-        //startingDataFromUserInput();
-    } else if (argc == 3)
-    {
-        destinationFileName = argv[2];
-        //stratingDataFromFile(argv[1]);
-    } else
-    {
-        fprintf(stderr,"Invalid number of arguments");
-        return -1;
-    }
+}
 
-    destinationFile = fopen(destinationFileName,"w");
-    if (destinationFile == NULL)
+int startingDataFromUserInput(long double *x, long double *y, long double *velocityX, long double *velocityY,
+                              long double *totalTime, long *numberOfSteps, long *stepsToSave)
+{
+    char buffer[10];
+    printf("Enter initial pos x:\n");
+    fgets(buffer,10,stdin);
+    int yay = sscanf(buffer,"%Lf",x);
+    printf("%d\n",yay);
+
+}
+
+
+int stratingDataFromFile(char *inputFileName, long double *x, long double *y, long double *velocityX,
+                         long double *velocityY, long double *totalTime, long *numberOfSteps, long *stepsToSave)
+{
+    FILE *inputFile = fopen(inputFileName,"r");
+    if (inputFile == NULL)
     {
-        perror("Problem with destination file");
+        perror("Problem with input file");
         return errno;
     }
 
-    dt = totalTime / numbersOfSteps;
-    whenToPrint = numbersOfSteps / stepsToSave;
+    
+
+    if (fclose(inputFile) != 0)
+    {
+        perror("Problem closing input file");
+        return errno;
+    }
+
+    return 0;
+
+}
+
+int mainLoop(long numbersOfSteps, long whenToPrint, FILE *destinationFile, long double initialX, long double initialY,
+             long double initialVelX, long double initialVelY, long double delta)
+{
+    long double x = initialX, y = initialY, velocityX = initialVelX, velocityY = initialVelY, dt = delta;
+    long double accelerationX, accelerationY; 
     for (int i = 1 ; i <= numbersOfSteps; i++)
     {
         long double d1 = calculateD1(x, y);
@@ -89,11 +103,52 @@ int main(int argc, char *argv[])
         velocityY = linearAdding(velocityY, accelerationY, dt);
 
         if (i % whenToPrint == 0){
-            fprintf(destinationFile,"%e,%e,", x,y);
+            fprintf(destinationFile,"%E,%E,", x, y);
 
         }
     }
-    fclose(destinationFile);
+    if (fclose(destinationFile) != 0)
+    {
+        perror("Problem closing destination file");
+        return -1;
+    }
+    
+}
+
+int main(int argc, char *argv[])
+{
+    long numbersOfSteps = 550, stepsToSave = 110, whenToPrint;
+    long double x, y = 5889, velocityX = 0.0, velocityY = 0, totalTime = 16.544468478, dt;
+    char *destinationFileName;
+    FILE *destinationFile;
+
+    if (argc == 2)
+    {
+        destinationFileName = argv[1];
+        startingDataFromUserInput(&x, &y, &velocityX, &velocityY, &totalTime, &numbersOfSteps, &stepsToSave);
+        printf("%Lf",x);
+    } else if (argc == 3)
+    {
+        destinationFileName = argv[2];
+        stratingDataFromFile(argv[1], &x, &y, &velocityX, &velocityY, &totalTime, &numbersOfSteps, &stepsToSave);
+    } else
+    {
+        fprintf(stderr,"Invalid number of arguments");
+        return 1;
+    }
+
+
+    destinationFile = fopen(destinationFileName,"w");
+    if (destinationFile == NULL)
+    {
+        perror("Problem with destination file");
+        return errno;
+    }
+    dt = totalTime / numbersOfSteps;
+    whenToPrint = numbersOfSteps / stepsToSave;
+
+    mainLoop(numbersOfSteps, whenToPrint, destinationFile,x,y,velocityX,velocityY,dt);
+
     return 0;
 
 }
